@@ -10,7 +10,7 @@
 # IconURL: http://aptonic.com/destinations/icons/print.png
  
 def dragged
-  $items.each {|item| `lp \"#{item}\" >& /dev/null`}
+  $items.each {|item| `lp \"#{item}\" >& /dev/null &`}
   $dz.finish("Printing...")
   $dz.url(false)
 end
