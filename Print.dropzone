@@ -1,0 +1,16 @@
+#!/usr/bin/ruby
+ 
+# Dropzone Destination Info
+# Name: Print
+# Description: Dropped files or images will be printed to the default printer.
+# Handles: NSFilenamesPboardType
+# Events: Dragged
+# Creator: Aptonic Software
+# URL: http://aptonic.com
+# IconURL: http://aptonic.com/destinations/icons/print.png
+ 
+def dragged
+  $items.each {|item| `lp \"#{item}\"`}
+  $dz.finish("Printing...")
+  $dz.url(false)
+end
