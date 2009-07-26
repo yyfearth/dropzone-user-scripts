@@ -1,6 +1,6 @@
 # Dropzone Destination Info
 # Name: bit.ly
-# Description: A dropped URL will be converted to an bit.ly URL.
+# Description: A dropped URL will be converted to a bit.ly URL.
 # Handles: NSStringPboardType
 # Creator: Sergej Müller
 # URL: http://www.ebiene.de
