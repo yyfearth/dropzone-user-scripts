@@ -19,7 +19,7 @@ def dragged
   
   if $items[0] =~ /http/
     Net::HTTP.start('api.bit.ly') do |http|
-      req = Net::HTTP::Get.new('/shorten?version=2.0.1&format=xml&longUrl=' + CGI::escape($items[0]))
+      req = Net::HTTP::Get.new('/shorten?version=2.0.1&format=xml&history=1&longUrl=' + CGI::escape($items[0]))
       req.basic_auth ENV['USERNAME'], ENV['PASSWORD']
       res = http.request(req)
       
