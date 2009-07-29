@@ -1,3 +1,5 @@
+#!/usr/bin/ruby
+ 
 # Dropzone Destination Info
 # Name: Mail Text
 # Description: Creates new Entourage mail message from dropped text.
