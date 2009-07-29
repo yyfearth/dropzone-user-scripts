@@ -1,3 +1,5 @@
+#!/usr/bin/ruby
+
 # Dropzone Destination Info
 # Name: bit.ly
 # Description: A dropped URL will be converted to a bit.ly URL.
