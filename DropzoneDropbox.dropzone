@@ -1,0 +1,54 @@
+#!/usr/bin/ruby
+
+# Dropzone Destination Info
+# Name: DropboxDropzone
+# Description: Share file via Dropbox Public folder, and put URL to file on the Clipboard
+# Handles: NSFilenamesPboardType
+# Creator: Philipp Fehre
+# URL: http://sidershowcoder.com
+# IconURL: http://sideshowcoder.com/DropboxDropzone/DropBox.png
+# Events: Dragged
+# OptionsNIB: Login
+# LoginTitle:  Enter Dropbox User ID, Password does not matter
+
+
+require 'base64'
+
+@dropboxPubDir = ""
+@dropboxPublicBaseURL = "http://dl.getdropbox.com/u/"
+
+def check_for_dropbox
+  # Get Public Directory for Dropbox
+  begin
+    File.foreach(ENV['HOME'] + "/.dropbox/host.db") { |line| @dropboxPubDir = Base64.decode64(line) + "/Public/" }
+    return true
+  rescue Errno::ENOENT
+    # Dropbox is not installed on this machine
+    return false
+  end
+end
+
+def dragged
+  # Start Task
+  $dz.determinate(true)
+  # Check and set Public Path
+  if !check_for_dropbox
+    $dz.finish("Dropbox is not installed")
+    sleep(1)
+    $dz.url(false)
+  else
+    # Check and Set File path
+    path = $items[0]
+    if File.directory?(path)
+      $dz.finish("Only Files please")
+      sleep(1)
+      $dz.url(false)
+    else
+      # Copy file to Public folder and set URL
+      $dz.begin("Copying #{File.basename(path)} ...")
+      Rsync.do_copy(path, @dropboxPubDir, false)
+      $dz.finish("done copying")
+      $dz.url(@dropboxPublicBaseURL + ENV['USERNAME'] + "/" + File.basename(path))
+    end
+  end
+end
