@@ -7,12 +7,13 @@
 # Creator: Philipp Fehre
 # URL: http://sidershowcoder.com
 # IconURL: http://sideshowcoder.com/DropboxDropzone/DropBox.png
-# Events: Dragged
+# Events: Dragged, Clicked
 # OptionsNIB: Login
 # LoginTitle:  Enter Dropbox User ID, Password does not matter
 
 
 require 'base64'
+require "set"
 
 @dropboxPubDir = ""
 @dropboxPublicBaseURL = "http://dl.getdropbox.com/u/"
@@ -52,3 +53,14 @@ def dragged
     end
   end
 end
+
+def clicked
+  if !check_for_dropbox
+    $dz.determinate(false)
+    $dz.finish("Dropbox is not installed")
+    sleep(1)
+  else
+    `osascript -e 'tell application "Finder"' -e 'activate' -e 'open folder POSIX file "#{@dropboxPubDir}"' -e 'end tell'`
+  end
+end
+    
