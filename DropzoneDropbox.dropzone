@@ -6,10 +6,10 @@
 # Handles: NSFilenamesPboardType
 # Creator: Philipp Fehre
 # URL: http://sidershowcoder.com
-# IconURL: http://sideshowcoder.com/DropboxDropzone/DropBox.png
+# IconURL: https://sideshowcoderdropboxdropzone.s3.amazonaws.com/DropBox.png
 # Events: Dragged, Clicked
 # OptionsNIB: Login
-# LoginTitle:  Enter Dropbox User ID, Password does not matter
+# LoginTitle:  Enter Dropbox User ID, Password does not matter (New NIB coming soon!)
 
 
 require 'base64'
