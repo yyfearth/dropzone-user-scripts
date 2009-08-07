@@ -1,0 +1,61 @@
+#!/usr/bin/ruby
+
+# Dropzone Destination Info
+# Name: GDocs Uploader
+# Description: Uploads documents to Google Docs
+# Handles: NSFilenamesPboardType
+# Events: dragged
+# KeyModifiers: Command
+# Creator: Christof Dorner
+# URL: http://chdorner.com/pages/projects/dropzone-plugins#gdocs_uploader
+# IconURL: http://chdorner.com/files/gdocs_uploader_icon.png
+# OptionsNIB: Login
+# LoginTitle: Google Documents Login Details
+
+require 'rubygems'
+require 'gdata'
+require 'mime/types'
+
+def dragged
+  $dz.determinate(true)
+  file_path = $items[0]
+  
+  $dz.begin("Authenticate with Google")
+  $dz.percent(10)
+  client = GData::Client::DocList.new
+  begin
+    client.clientlogin(ENV['USERNAME'], ENV['PASSWORD'])
+  rescue GData::Client::AuthorizationError
+    $dz.error("Login Failure", "Oops, something went wrong while logging you in. Check the credentials")
+  rescue GData::Client::CaptchaError
+    $dz.error("Login Failure", "There was an error with loggin you in, try to login to Google Docs in your browser and then try again.")
+  rescue SocketError
+    $dz.error("No connection", "Cannot connect to the Google Docs service, are you connected to the internet?")
+  rescue Exception
+    $dz.error("Unkown error", "An unkown error happened.")
+  end
+  sleep(1)
+  
+  $dz.begin("Uploading document")
+  $dz.percent(60)
+  begin
+    mime_type = MIME::Types.type_for file_path
+    response = client.make_file_request(:post, 'http://docs.google.com/feeds/documents/private/full', file_path, mime_type)
+  rescue GData::Client::UnknownError
+    if $!.to_s.include?("request error 415")
+      $dz.error("Unsupported Document", "You tried to upload a document which is not supported by Google Docs service.")
+    else
+      $dz.error("Unkown Error", "An unkown error happened.")
+    end
+  rescue NoMethodError
+    if $!.to_s.include?("Malformed Content-Type")
+      $dz.error("Unsupported Document Format", "Could not read the document format.")
+    end
+  rescue Exception
+    $dz.error("Unkown error", "An unkown error happened.")
+  end
+  sleep(1)
+   
+  $dz.finish("Document uploaded")
+  $dz.url(false)
+end
