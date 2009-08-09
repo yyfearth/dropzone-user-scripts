@@ -12,6 +12,8 @@
 # OptionsNIB: Login
 # LoginTitle: Google Documents Login Details
 
+# Version: 0.2
+
 require 'rubygems'
 require 'gdata'
 require 'mime/types'
@@ -38,7 +40,9 @@ def dragged
   end
   sleep(1)
   
-  $dz.begin("Uploading document" + ("s" if $items.size > 1))
+  updoc = "Uploading document"
+  updoc += "s" unless $items.size == 1
+  $dz.begin(updoc)
   $dz.percent(60)
   errors = []
   $items.each do |file_path|
@@ -69,8 +73,11 @@ def dragged
     $dz.error("Unsupported Document", error)
   end
   sleep (1)
-   
-  $dz.finish("Document" + ("s" if $items.size > 1) + " uploaded")
+  
+  updoc = "Document"
+  updoc += "s" unless $items.size == 1
+  updoc += " uploaded"
+  $dz.finish(updoc)
   if $items.size > 1
     $dz.url(gdocs_home_url)
   elsif url != ''
