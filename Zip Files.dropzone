@@ -1,0 +1,27 @@
+#!/usr/bin/ruby
+
+# Dropzone Destination Info
+# Name: Zip it!
+# Description: Zips up the dropped files or folders and save on your desktop.
+# Handles: NSFilenamesPboardType
+# Creator: Sergej Müller
+# URL: http://ebiene.de
+# IconURL: http://download.ebiene.de/dropzone/zip-it/icon.png
+
+def dragged
+  $dz.begin("Collect data...")
+  $dz.determinate(false)
+
+  output = `./CocoaDialog standard-inputbox --title "New ZIP File" --e --informative-text "Enter name for new zip file (minus extension):"`
+  input = output.split("\n")[1]
+
+  filename = (input ? input : 'Archive') + '.zip'
+  desktop = ENV['HOME'] + '/Desktop'
+
+  zipfile = ZipFiles.zip($items, filename)
+  system("zip -d #{zipfile} '__MACOSX*' '*.DS_Store'")
+  Rsync.do_copy(zipfile.gsub(/ /, '\ '), desktop, true)
+
+  $dz.finish("ZIP created")
+  $dz.url(false)
+end
