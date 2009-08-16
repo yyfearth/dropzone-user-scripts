@@ -1,7 +1,7 @@
 #!/usr/bin/ruby
 
 # Dropzone Destination Info
-# Name: Zip it!
+# Name: Zip It!
 # Description: Zips up the dropped files or folders and places the zip file on the desktop.
 # Handles: NSFilenamesPboardType
 # Creator: Sergej Müller
