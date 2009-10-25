@@ -11,6 +11,7 @@
 # IconURL: http://antiframeworks.com/icondepot/ftp-128x128.png
 # OptionsNIB: ExtendedLogin
 # LoginTitle: SCP Host Details
+# DefaultPort: 22
 
 require 'rubygems'
 
