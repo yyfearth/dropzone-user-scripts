@@ -12,8 +12,6 @@
 # OptionsNIB: ExtendedLogin
 # DefaultPort: 22
 
-require 'rubygems'
-require 'net/ssh'
 require 'scp'
 
 $host_info = {:server    => ENV['SERVER'],
