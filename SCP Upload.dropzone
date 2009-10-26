@@ -50,7 +50,7 @@ def dragged
   finish_text = "Upload Complete"
   
   if remote_paths.length == 1
-    filename = remote_paths[0].split(File::SEPARATOR)[-1].strip
+    filename = remote_paths[0].split(File::SEPARATOR)[-1].strip[0..-2]
     
     if ENV['ROOT_URL'] != nil
       slash = (ENV['ROOT_URL'][-1,1] == "/" ? "" : "/")
@@ -87,7 +87,7 @@ class SCP
     
     self.upload(source_files, destination, host_info[:server], host_info[:port], 
                                            host_info[:username], host_info[:password]) do |percent, remote_path|
-      remote_file = remote_path.split(File::SEPARATOR)[-1]
+      remote_file = remote_path.split(File::SEPARATOR)[-1][0..-2]
       
       if remote_path != last_uploaded_path
         $dz.begin("Uploading #{remote_file}...")
@@ -138,7 +138,6 @@ class SCP
   	        begin
   	          # Send the file
   	          bytesSent = 0
-  	          remote = remote.gsub(" ", "\\ ")
   	          ssh.scp.upload!(local, remote) do |ch, name, sent, total|
   	            bytesSent = sent
   	            if size != 0
@@ -146,7 +145,7 @@ class SCP
   	            else
   	              percent = 100
   	            end
-  	            yield percent, remote.gsub("\\ ", " ")
+  	            yield percent, remote
   	          end
   	          transferred += bytesSent
               rescue
@@ -193,7 +192,7 @@ class SCP
       # Increment the size
       size += File.size localfile;
       remotefile = (remotedir + '/' + File.basename(localfile)).gsub('//', '/')
-      files.push [localfile, remotefile]
+      files.push [localfile, "\"" + remotefile + "\""]
     end
     return { :files => files, :size => size }
   end
