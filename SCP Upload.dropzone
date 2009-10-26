@@ -143,12 +143,12 @@ class SCP
   	          remote = remote.gsub(" ", "\\ ")
   	          ssh.scp.upload!(local, remote) do |ch, name, sent, total|
   	            bytesSent = sent
-  	            if size!=0
-  	              percent = ((transferred+sent) * 100 / size)
+  	            if size != 0
+  	              percent = ((transferred + sent) * 100 / size)
   	            else
   	              percent = 100
   	            end
-  	            yield percent, remote
+  	            yield percent, remote.gsub("\\ ", " ")
   	          end
   	          transferred += bytesSent
               rescue
