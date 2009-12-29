@@ -1,46 +1,44 @@
-#!/usr/bin/ruby
-
 # Dropzone Destination Info
 # Name: bit.ly
-# Description: A dropped URL will be converted to a bit.ly URL.
+# Description: A dropped URL will be converted to a Bit.ly URL.
 # Handles: NSStringPboardType
-# Creator: Sergej Müller
-# URL: http://www.ebiene.de
+# Creator: Sergej M√ºller
+# URL: http://ebiene.de
 # IconURL: http://aptonic.com/destinations/icons/bit.ly.png
 # OptionsNIB: Login
-# LoginTitle: bit.ly Login Details
-
+# LoginTitle: Bit.ly Login Details
+ 
 require 'open-uri'
 require 'net/http'
 require 'cgi'
 require 'rexml/document'
-
+ 
 def dragged
   $dz.determinate(false)
-  $dz.begin("Getting bit.ly URL")
+  $dz.begin("Getting Bit.ly URL")
   
   if $items[0] =~ /http/
-    Net::HTTP.start('api.bit.ly') do |http|
+    Net::HTTP.start('api.j.mp') do |http|
       req = Net::HTTP::Get.new('/shorten?version=2.0.1&format=xml&history=1&longUrl=' + CGI::escape($items[0]))
       req.basic_auth ENV['USERNAME'], ENV['PASSWORD']
       res = http.request(req)
       
       doc = REXML::Document.new(res.body)
       doc.elements.each("bitly/statusCode") do |a|
-      	if a.text == "ERROR"
-      		$dz.finish("Invalid user or password")
-    			$dz.url(false)
-      	else
-      		doc.elements.each("bitly/results/nodeKeyVal/shortUrl") do |b|
-      			if b.text.empty?
-      				$dz.finish("Empty URL is returned")
-    					$dz.url(false)
-    				else
-      				$dz.finish("URL is now on clipboard")
-    					$dz.url(b.text)
-    				end
-      		end
-      	end
+       if a.text == "ERROR"
+       $dz.finish("Invalid user or password")
+     $dz.url(false)
+       else
+       doc.elements.each("bitly/results/nodeKeyVal/shortUrl") do |b|
+       if b.text.empty?
+       $dz.finish("Empty URL is returned")
+     $dz.url(false)
+     else
+       $dz.finish("URL is now on clipboard")
+     $dz.url(b.text)
+     end
+       end
+       end
       end
     end
   else
@@ -48,7 +46,7 @@ def dragged
     $dz.url(false)
   end
 end
-
+ 
 def clicked
-  system("open http://bit.ly/")
+  system("open http://j.mp")
 end
