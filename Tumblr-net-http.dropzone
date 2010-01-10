@@ -1,0 +1,84 @@
+#!/usr/bin/ruby
+ 
+# Dropzone Destination Info
+# Name: Tumblr
+# Description: Share stuff on Tumblr. Holding down option allows you to enter a post title.
+# Handles: NSFilenamesPboardType
+# Events: Clicked, Dragged
+# KeyModifiers: Option
+# Creator: Tinu Cleatus
+# URL: http://blog.tinucleatus.com
+# IconURL: http://dl.dropbox.com/u/177542/tumblr_logo.png
+# OptionsNIB: Login
+# LoginTitle: Tumblr Login Details
+
+# TODO: Get the users tumblr url so that the url on pasteboard works
+
+module Tumblr
+  class Api
+    require 'net/http'
+    require 'uri'
+
+    attr_accessor :form_data, :result_body
+
+    def initialize(type, &block)
+      self.form_data = Hash.new
+
+      self.add_form_data('email', ENV['USERNAME'])
+      self.add_form_data('password', ENV['PASSWORD'])
+      self.add_form_data('type', type)
+
+      block.call(self)
+      self.result_body = self.run_commands.body
+    end
+
+    def add_form_data(key, value)
+      self.form_data[key] = value
+    end
+
+    def run_commands
+      url = URI.parse("http://www.tumblr.com/api/write")
+      req = Net::HTTP::Post.new(url.path)
+      req.set_form_data(self.form_data)
+      h = Net::HTTP.new(url.host, url.port)
+      return h.start {|http| http.request(req) }
+    end
+  end
+end
+
+
+def dragged
+  $dz.determinate(false)
+  file_path = $items[0]
+  filename = File.basename(file_path)
+  title_text = ""
+  
+  if ENV['KEY_MODIFIERS'] == "Option"
+    output = `./CocoaDialog standard-inputbox --title "Enter Title" --e --informative-text "Enter the title for your post:"`
+    button, title_text = output.split("\n")
+
+    if button == "2" or title_text == nil
+      return_error("Cancelled")
+    end
+  end
+  
+  $dz.begin("Uploading #{filename}...")
+
+  begin
+    url = Tumblr::Api.new('photo') do |config|
+      config.add_form_data('caption', title_text)
+      config.add_form_data('data', File.open(file_path).read)
+    end
+    $dz.finish("URL is now on clipboard.")
+    $dz.url(url.result_body)
+  rescue Exception => e
+    return_error("Error uploading!")
+  end
+  
+end
+
+def return_error(message)
+  $dz.finish(message)
+  $dz.url(false)
+  return
+end
