@@ -1,0 +1,94 @@
+#!/usr/bin/env ruby
+ 
+# Dropzone Destination Info
+# Name: Gist text
+# Description: Drag text to share it instantly to gist.
+# Handles: NSStringPboardType
+# Events: Clicked, Dragged
+# KeyModifiers: Option
+# Creator: Edgar Suarez
+# URL: http://e.dgar.org
+# IconURL: http://aws3-edgarjs-images.s3.amazonaws.com/gist_dz.png
+# OptionsNIB: Login
+# LoginTitle: Your Github user and token
+
+require 'open-uri'
+require 'net/http'
+require 'yaml'
+ 
+class Gist
+  @@gist_url = 'http://gist.github.com/%s'
+  @@last_url_filename = File.expand_path("~/.dz_last_gist")
+  
+  class << self
+  
+    def post(content, private_gist)
+      url = URI.parse('http://gist.github.com/ap/v1/yaml/new')
+      request = Net::HTTP.post_form(url, build_params(prompt_filename, content, private_gist))
+      if request.code.to_i == 200
+        response = YAML.load(request.body)
+        persist(@@gist_url % response['gists'][0][:repo])
+      else
+        raise "Error: #{request.code}"
+      end
+    end
+    
+    def get_last_url
+      if File.readable?(@@last_url_filename)
+        File.open(@@last_url_filename).read.chomp
+      else
+        "No gists yet."
+      end
+    end
+  
+    private
+    
+    def prompt_filename
+      output = `./CocoaDialog standard-inputbox --title "Gist File name" --e --informative-text "Enter name for new file of your gist:"`
+      output.split("\n")[1]
+    end
+  
+    def persist(url)
+      File.open(@@last_url_filename, 'w') do |f|
+        f.puts url
+      end
+      url
+    end
+
+    def build_params(filename, content, private_gist)
+      {
+        "files[#{filename}]" => content,
+        :login => ENV['USERNAME'],
+        :token => ENV['PASSWORD'],
+        :private => private_gist
+      }
+    end
+    
+  end
+end
+
+# DZ events
+ 
+def dragged
+  $dz.determinate(false)
+  
+  $dz.begin("Uploading ...")
+
+  begin
+    url = Gist.post($items[0], ENV["KEY_MODIFIERS"] == "") # press Option key to make a public gist
+    $dz.finish("The URL has been copied.")
+    $dz.url(url)
+  rescue Exception => e
+    $dz.finish("Error uploading gist!")
+    $dz.url(false)
+    exit
+  end
+  
+end
+
+def clicked
+  url = Gist.get_last_url
+  $dz.finish("The URL has been copied.")
+  $dz.url(url)
+  system("open #{url}")
+end
