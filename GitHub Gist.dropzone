@@ -1,16 +1,16 @@
 #!/usr/bin/env ruby
  
 # Dropzone Destination Info
-# Name: Gist text
-# Description: Drag text to share it instantly to gist.
+# Name: GitHub Gist
+# Description: Drag text to share it instantly via GitHub Gist. Hold down option to make a public Gist. Click to copy and goto the last URL.
 # Handles: NSStringPboardType
 # Events: Clicked, Dragged
 # KeyModifiers: Option
 # Creator: Edgar Suarez
 # URL: http://e.dgar.org
-# IconURL: http://aws3-edgarjs-images.s3.amazonaws.com/gist_dz.png
+# IconURL: http://aptonic.com/destinations/icons/gist.png
 # OptionsNIB: Login
-# LoginTitle: Your Github user and token
+# LoginTitle: Your GitHub username and API token
 
 require 'open-uri'
 require 'net/http'
@@ -23,7 +23,7 @@ class Gist
   class << self
   
     def post(content, private_gist)
-      url = URI.parse('http://gist.github.com/ap/v1/yaml/new')
+      url = URI.parse('http://gist.github.com/api/v1/yaml/new')
       request = Net::HTTP.post_form(url, build_params(prompt_filename, content, private_gist))
       if request.code.to_i == 200
         response = YAML.load(request.body)
@@ -37,15 +37,31 @@ class Gist
       if File.readable?(@@last_url_filename)
         File.open(@@last_url_filename).read.chomp
       else
-        "No gists yet."
+        $dz.finish("No gists yet")
+        $dz.url(false)
+        Process.exit!
       end
     end
   
     private
     
     def prompt_filename
-      output = `./CocoaDialog standard-inputbox --title "Gist File name" --e --informative-text "Enter name for new file of your gist:"`
-      output.split("\n")[1]
+      output = `./CocoaDialog standard-inputbox --title "Gist name" --e --informative-text "Enter gist name:"`
+      button, filename = output.split("\n")
+
+      if button == "2"
+        $dz.finish("Cancelled")
+        $dz.url(false)
+        Process.exit!
+      end
+      
+      if filename == nil
+        $dz.finish("Empty name")
+        $dz.url(false)
+        Process.exit!
+      end
+      
+      return filename
     end
   
     def persist(url)
@@ -60,8 +76,7 @@ class Gist
         "files[#{filename}]" => content,
         :login => ENV['USERNAME'],
         :token => ENV['PASSWORD'],
-        :private => private_gist
-      }
+      }.merge(private_gist ? { 'private' => 'true' } : {})
     end
     
   end
@@ -71,12 +86,10 @@ end
  
 def dragged
   $dz.determinate(false)
-  
-  $dz.begin("Uploading ...")
-
+  $dz.begin("Creating gist...")
   begin
-    url = Gist.post($items[0], ENV["KEY_MODIFIERS"] == "") # press Option key to make a public gist
-    $dz.finish("The URL has been copied.")
+    url = Gist.post($items[0], ENV['KEY_MODIFIERS'] == "")
+    $dz.finish("URL is now on clipboard")
     $dz.url(url)
   rescue Exception => e
     $dz.finish("Error uploading gist!")
@@ -88,7 +101,7 @@ end
 
 def clicked
   url = Gist.get_last_url
-  $dz.finish("The URL has been copied.")
+  $dz.finish("URL is now on clipboard")
   $dz.url(url)
   system("open #{url}")
 end
