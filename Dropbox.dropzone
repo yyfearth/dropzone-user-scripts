@@ -13,49 +13,67 @@
 require 'base64'
 require 'set'
 
+# Debugging needs ENV set
+# ENV['USERNAME'] = "xxxxxx"
+
 @dropboxPubDir = ""
 @dropboxPublicBaseURL = "http://dl.getdropbox.com/u/"
 
-def check_for_dropbox
-  # Get Dropbox Public directory
-  begin
-    File.foreach(ENV['HOME'] + "/.dropbox/host.db") { |line| @dropboxPubDir = Base64.decode64(line) + "/Public/" }
-    return true
-  rescue Errno::ENOENT
-    # Dropbox is not installed on this machine
-    return false
-  end
+def dropbox?
+	# Get Dropbox Public directory from the Dropbox database file, if this file is not present
+	# Dropbox is most likely not installed
+	begin
+		File.foreach(ENV['HOME'] + "/.dropbox/host.db") do |line|
+			@dropboxPubDir = Base64.decode64(line) + "/Public/"
+		end
+		return true
+	rescue Errno::ENOENT
+	# Dropbox is not installed on this machine
+		return false
+	end
 end
 
+
 def dragged
-  $dz.determinate(true)
-  # Check and set Public path
-  if not check_for_dropbox
-    $dz.finish("Dropbox is not installed")
-    $dz.url(false)
-  else
-    # Check and set file path
-    path = $items[0]
-    if File.directory?(path)
-      $dz.finish("Only files please")
-      $dz.url(false)
-    else
-      # Copy file to Public folder and set URL
-      $dz.begin("Copying #{File.basename(path)} ...")
-      Rsync.do_copy(path, @dropboxPubDir, false)
-      $dz.finish("URL is now on clipboard")
-      $dz.url(@dropboxPublicBaseURL + ENV['USERNAME'] + "/" + File.basename(path))
-    end
-  end
+	$dz.determinate(true)
+	# Check if Dropbox is installed and set Public path
+	if not dropbox?
+		$dz.finish("Dropbox is not installed")
+		$dz.url(false)
+		return
+	else
+	# Get dragged path
+		path = $items[0]
+	end
+	# If a directory is dragged zip it using the name as archive name
+	if File.directory?(path)
+		dir_name = path.split(File::SEPARATOR).last
+		zipfile = ZipFiles.zip(path, "#{dir_name}.zip")
+		path = zipfile
+	end
+	
+	# Need to strip quotes which are passed when using a Zipfile
+	# This might be a ruby bug but the regexp should take care of that even if it is fixed
+	# some time in the futur
+	path.gsub!(/\A(['"])(.*)\1\z/, '\2')
+
+	# Copy file to Dropbox Public dir and place create URL on Clipboard
+	$dz.begin("Copying #{File.basename(path)} ...")
+	Rsync.do_copy(path, @dropboxPubDir, false)
+	$dz.url("#{@dropboxPublicBaseURL}#{ ENV['USERNAME']}/#{File.basename(path)}")
+	$dz.finish("URL to share is on clipboard")
 end
 
 def clicked
-  if not check_for_dropbox
-    $dz.determinate(false)
-    $dz.finish("Dropbox is not installed")
-    $dz.url(false)
-  else
-    `osascript -e 'tell application "Finder"' -e 'activate' -e 'open folder POSIX file "#{@dropboxPubDir}"' -e 'end tell'`
-  end
+	# Check for Dropbox and set Public Directory path
+	if not dropbox?
+		$dz.determinate(false)
+		$dz.finish("Dropbox is not installed")
+		$dz.url(false)
+	else
+		# Open Finder at Public Directory using Applescript
+		`osascript -e 'tell application "Finder"' -e 'activate' -e 'open folder\
+		POSIX file "#{@dropboxPubDir}"' -e 'end tell'`
+	end
 end
     
