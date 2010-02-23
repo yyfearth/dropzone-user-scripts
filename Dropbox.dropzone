@@ -60,8 +60,8 @@ def dragged
 	# Copy file to Dropbox Public dir and place create URL on Clipboard
 	$dz.begin("Copying #{File.basename(path)} ...")
 	Rsync.do_copy(path, @dropboxPubDir, false)
+	$dz.finish("URL is now on clipboard")
 	$dz.url("#{@dropboxPublicBaseURL}#{ ENV['USERNAME']}/#{File.basename(path)}")
-	$dz.finish("URL to share is on clipboard")
 end
 
 def clicked
