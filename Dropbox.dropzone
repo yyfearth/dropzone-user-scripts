@@ -13,9 +13,7 @@
 require 'base64'
 require 'set'
 
-# Debugging needs ENV set
-# ENV['USERNAME'] = "xxxxxx"
-
+# Global variables for Dropbox settings
 @dropboxPubDir = ""
 @dropboxPublicBaseURL = "http://dl.getdropbox.com/u/"
 
@@ -41,16 +39,27 @@ def dragged
 		$dz.finish("Dropbox is not installed")
 		$dz.url(false)
 		return
+	end
+
+	# Handle Drag
+	if $items.length > 1
+		# More than 1 item dragged 
+		# Create zip of all items and name it after the first item
+		dir_name = /\A(\w*)/.match($items[0].split(File::SEPARATOR).last)
+		zipfile = ZipFiles.zip($items, "#{dir_name}.zip")
+		path = zipfile
+	elsif File.directory?($items[0])
+		# 1 Folder was dragged
+		# Create a Zip from the folder and name it after the folder
+		dir_name = $items[0].split(File::SEPARATOR).last
+		zipfile = ZipFiles.zip($items[0], "#{dir_name}.zip")
+		path = zipfile
 	else
-	# Get dragged path
+		# Only 1 item dragged 
+		# Handle only the file by itself
 		path = $items[0]
 	end
-	# If a directory is dragged zip it using the name as archive name
-	if File.directory?(path)
-		dir_name = path.split(File::SEPARATOR).last
-		zipfile = ZipFiles.zip(path, "#{dir_name}.zip")
-		path = zipfile
-	end
+	
 	
 	# Need to strip quotes which are passed when using a Zipfile
 	# This might be a ruby bug but the regexp should take care of that even if it is fixed
