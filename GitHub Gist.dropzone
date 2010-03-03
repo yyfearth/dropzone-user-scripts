@@ -56,9 +56,7 @@ class Gist
       end
       
       if filename == nil
-        $dz.finish("Empty name")
-        $dz.url(false)
-        Process.exit!
+        filename = "untitled.txt"
       end
       
       return filename
