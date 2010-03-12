@@ -148,22 +148,29 @@ class Net::HTTP
 end
 
 def dragged
-    # Problem with certain URI http://francia.jardinpresente.com.ar/Paso%20a%20Paso%20-%201º%20Fecha%20-%20Apertura%202009.avi
-    # Even when escaped()
+    urls = $items[0].split("\n")
     
-    uri = URI.parse(URI.escape($items[0]))
-    filename = uri.path.split(File::SEPARATOR)[-1]
+    $dz.determinate(false)
 
-    $dz.determinate(true)
-    $dz.begin("Starting download of #{filename}...")
+    urls.each_with_index do |url, index|
+      $dz.begin("Downloading file #{index+1} of #{urls.length}...")
+      item = url.gsub(/\[/, '%5B').gsub(/\]/, '%5D').chomp
+    
+      uri = URI.parse(URI.escape(item))
+      filename = url.split(File::SEPARATOR)[-1].chomp
 
-    File.open(File.join(ENV['EXTRA_PATH'], filename), 'w') do |file|
+      $dz.determinate(true)
+
+      tmp_file = File.join('/tmp/', filename)
+
+      File.open(tmp_file, 'w') do |file|
         response = Net::HTTP.get_response_with_stats(uri) do |resp, bytes| 
-            file.write(bytes)
-            $dz.percent(resp.bytes_percent)
-            time_left = [resp.left_time.to_i/3600, resp.left_time.to_i/60 % 60, resp.left_time.to_i % 60].map{|t| t.to_s.rjust(2,'0')}.join(':')
-            $dz.begin("#{resp.bytes_percent}% done - #{time_left} remaining at #{(resp.bytes_rate / 1024).to_i} KB/s")
+          file.write(bytes)
+          $dz.percent(resp.bytes_percent)
         end
+      end
+    
+      Rsync.do_copy(tmp_file, ENV['EXTRA_PATH'], true)
     end
 
     $dz.finish("Download complete")
