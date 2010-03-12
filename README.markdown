@@ -1,7 +1,5 @@
 # Dropzone user scripts repository
 
----
-
 ## For Dropzone Users
 
 You can download Dropzone actions directly from this repository by clicking on one of the files above, then click 'raw' and do File -> Save Page As... then double click on the downloaded file to add it to your grid.  
