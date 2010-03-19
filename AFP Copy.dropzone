@@ -1,0 +1,110 @@
+#!/usr/bin/ruby
+
+# Dropzone Destination Info
+# Name: AFP Copy
+# Description: Copy files to a specified path on a specified server.
+# Handles: NSFilenamesPboardType
+# Creator: Aloha Silver
+# URL: http://alohasilver.wordpress.com/afp-copy/
+# IconURL: http://alohasilver.files.wordpress.com/2010/03/downloads.png
+# Events: Dragged, Clicked
+# OptionsNIB: ExtendedLogin
+
+def dragged
+  # Verifies if the server is online
+  if isonline?
+    itisonline = true
+  else
+    itisonline = false
+  end
+  
+  # In case the server is offline, tells the user that and stops acting
+  if itisonline == false
+    $dz.finish("This Server is Offline!")
+    $dz.url(false)
+    return
+    
+  # In case the server is online, acts as expected, copying the files
+  else
+    $dz.determinate(true)
+    
+    # Checks for a mounted volume.
+    path = "/Volumes/#{ENV['USERNAME']}/"
+    if File.exists?(path) && File.directory?(path)
+      tomount = false
+    else
+      tomount = true
+    end
+  
+    # Mounts the volume, if it wasn't mounted before running the script.
+    if tomount == true
+      $dz.begin("Mounting Volume...")
+      `mkdir /Volumes/#{ENV['USERNAME']}`
+      `/sbin/mount_afp -i afp://#{ENV['USERNAME']}:#{ENV['PASSWORD']}@#{ENV['SERVER']}/#{ENV['USERNAME']} /Volumes/#{ENV['USERNAME']}`
+    end
+
+    $dz.begin("Copying...")
+    Rsync.do_copy($items, "/Volumes/#{ENV['USERNAME']}/#{ENV['REMOTE_PATH']}", false)
+  
+    # If the script mounted the volume, it is then ejected.
+    if tomount == true
+      `umount /Volumes/#{ENV['USERNAME']}`
+    end
+  
+    $dz.finish("File(s) Copied")
+    $dz.url(false)
+  end
+end
+
+def clicked
+  # Verifies if the server is online
+  if isonline?
+    itisonline = true
+  else
+    itisonline = false
+  end
+  
+  # In case the server is offline, tells the user that and stops acting
+  if itisonline == false
+    $dz.finish("This Server is Offline!")
+    $dz.url(false)
+    return
+    
+  # In case the server is online, acts as expected, opening the folder
+  else
+    $dz.determinate(false)
+    
+    # Checks for a mounted volume.
+    path = "Volumes/#{ENV['USERNAME']}"
+    if File.exists?(path) && File.directory?(path)
+      tomount = false
+    else
+      tomount = true
+    end
+  
+    # Mounts the volume, if it wasn't mounted before running the script.
+    if tomount == true
+      $dz.begin("Mounting Volume...")
+      `mkdir /Volumes/#{ENV['USERNAME']}`
+      `/sbin/mount_afp -i afp://#{ENV['USERNAME']}:#{ENV['PASSWORD']}@"#{ENV['SERVER']}"/#{ENV['USERNAME']} /Volumes/#{ENV['USERNAME']}`
+    end
+  
+  # Shows the destination folder.
+  system("open \"#{"/Volumes/#{ENV['USERNAME']}/#{ENV['REMOTE_PATH']}"}\"")
+  
+  $dz.finish("Done")
+  $dz.url(false)
+  end
+end
+
+def isonline?
+  
+  # This function tests for the availability of a server.
+  # It returns true if the server is online, false if it is offline.
+  pinganswer = `ping -t 1 -o #{ENV['SERVER']}`
+  if pinganswer == ''
+    return false
+  else
+    return true
+  end
+end
