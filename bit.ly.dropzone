@@ -2,7 +2,7 @@
 # Name: bit.ly
 # Description: A dropped URL will be converted to a Bit.ly URL.
 # Handles: NSStringPboardType
-# Creator: Sergej M√ºller
+# Creator: Sergej Müller
 # URL: http://ebiene.de
 # IconURL: http://aptonic.com/destinations/icons/bit.ly.png
 # OptionsNIB: Login
