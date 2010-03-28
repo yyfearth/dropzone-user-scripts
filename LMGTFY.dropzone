@@ -16,7 +16,7 @@ def dragged
   $dz.determinate(false)
   $dz.begin("Let me Google that for you...")
   begin
-    url = lmgtfy_url % $items[0].strip.gsub("\n", ' ')
+    url = lmgtfy_url % CGI::escape($items[0].strip.gsub("\n", ' '))
     if ENV['KEY_MODIFIERS'] != ''
       url += '&l=1'
     end
