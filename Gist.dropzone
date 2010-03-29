@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
  
 # Dropzone Destination Info
-# Name: GitHub Gist
+# Name: Gist
 # Description: Drag text or files to share them instantly via GitHub Gist. Hold down option to make a public Gist. Click to copy and goto the last URL.
 # Handles: NSStringPboardType, NSFilenamesPboardType
 # Events: Clicked, Dragged
