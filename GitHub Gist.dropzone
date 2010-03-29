@@ -57,7 +57,7 @@ class Gist
     private
     
     def prompt_filename
-      output = `./CocoaDialog standard-inputbox --title "Gist name" --e --informative-text "Enter gist name:"`
+      output = `./CocoaDialog standard-inputbox --title "Gist name" --e --informative-text "Enter Gist name:"`
       button, filename = output.split("\n")
 
       if button == "2"
