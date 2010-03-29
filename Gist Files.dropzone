@@ -1,9 +1,9 @@
 #!/usr/bin/env ruby
  
 # Dropzone Destination Info
-# Name: GitHub Gist Files
-# Description: Drag files to share them instantly via GitHub Gist. Hold down option to make a public Gist. Click to copy and goto the last URL.
-# Handles: NSFilenamesPboardType
+# Name: GitHub Gist
+# Description: Drag text or files to share them instantly via GitHub Gist. Hold down option to make a public Gist. Click to copy and goto the last URL.
+# Handles: NSStringPboardType, NSFilenamesPboardType
 # Events: Clicked, Dragged
 # KeyModifiers: Option
 # Creator: Justin Hileman
@@ -113,8 +113,7 @@ def dragged
   $dz.determinate(false)
   $dz.begin("Creating gist...")
   begin
-#   case $dz.type()
-    case 'NSFilenamesPboardType'
+    case ENV['DRAGGED_TYPE']
       when 'NSStringPboardType'
         url = Gist.post_text($items[0], ENV['KEY_MODIFIERS'] == "")
       when 'NSFilenamesPboardType'
