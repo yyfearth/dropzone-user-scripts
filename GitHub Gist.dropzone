@@ -48,7 +48,7 @@ class Gist
       if File.readable?(@@last_url_filename)
         File.open(@@last_url_filename).read.chomp
       else
-        $dz.finish("No gists yet")
+        $dz.finish("No Gists yet")
         $dz.url(false)
         Process.exit!
       end
@@ -111,7 +111,7 @@ end
  
 def dragged
   $dz.determinate(false)
-  $dz.begin("Creating gist...")
+  $dz.begin("Creating Gist...")
   begin
     case ENV['DRAGGED_TYPE']
       when 'NSStringPboardType'
@@ -122,7 +122,7 @@ def dragged
     $dz.finish("URL is now on clipboard")
     $dz.url(url)
   rescue Exception => e
-    $dz.finish("Error uploading gist! %s" % e)
+    $dz.finish("Error uploading Gist! %s" % e)
     $dz.url(false)
     exit
   end
