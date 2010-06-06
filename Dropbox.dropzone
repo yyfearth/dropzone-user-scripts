@@ -15,7 +15,7 @@ require 'set'
 
 # Global variables for Dropbox settings
 @dropboxPubDir = ""
-@dropboxPublicBaseURL = "http://dl.getdropbox.com/u/"
+@dropboxPublicBaseURL = "http://dl.dropbox.com/u/"
 
 def dropbox?
 	# Get Dropbox Public directory from the Dropbox database file, if this file is not present
