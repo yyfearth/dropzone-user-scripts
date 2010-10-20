@@ -2,9 +2,10 @@
  
 # Dropzone Destination Info
 # Name: Yandex.Fotki
-# Description: Drag photos to upload them to the Yandex.Fotki (http://fotki.yandex.ru)
+# Description: Drag photos to upload them to the Yandex.Fotki (http://fotki.yandex.ru). Hold "Option" key to make phot private.
 # Handles: NSFilenamesPboardType
 # Events: Clicked, Dragged
+# KeyModifiers: Option
 # Creator: Alexander Artemenko <svetlyak.40wt@gmail.com>
 # URL: http://svetlyak.ru
 # IconURL: http://fotki.yandex.ru/favicon.ico
@@ -16,7 +17,7 @@ require 'logger'
 
 class YandexFotki
     @@config_filename = File.expand_path("~/.dz_yandex_fotki")
-    @@client_id = '0eb3b0a090bf4f158b2f312a912f5f4b'
+    @@client_id = 'cd414e3ca88a451aa9256f673f40edd6'
     @@api_host = 'api-fotki.yandex.ru'
     @@api_port = 80
     @@log = Logger.new(File.expand_path('~/Library/Application Support/Dropzone/YandexFotki.log'), 10, 1024000)
@@ -32,7 +33,7 @@ class YandexFotki
             @@log.info(message)
         end
 
-        def post_files(filenames)
+        def post_files(filenames, access_public)
             config = load_config()
 
             log("post_files")
@@ -74,6 +75,24 @@ class YandexFotki
                     image_url = response['Content-Location']
                     config['last_image_url'] = image_url
                     save_config(config)
+
+                    log("access_public = #{access_public}")
+
+                    entry = response.body
+                    if access_public
+                        entry = entry.gsub('f:access value="private"', 'f:access value="public"')
+                    end
+
+                    entry = entry.gsub('<title>Фотка</title>', "<title>#{basename}</title>")
+
+                    photo_uri = URI.parse(response['location']).request_uri
+                    log("updating photo #{photo_uri} meta") 
+                    update_request = Net::HTTP::Put.new(photo_uri)
+                    update_request['Authorization'] = 'OAuth ' + config['token']
+                    update_request['Content-Type'] = 'application/atom+xml; charset=utf-8; type=entry'
+                    update_request.body = entry
+                    response = http.request(update_request)
+                    log("Response code: #{response.code}, #{response.body}")
                 else
                     log("Error: #{response.code}, #{response.body}")
 
@@ -151,7 +170,7 @@ def dragged
     begin
         case ENV['DRAGGED_TYPE']
             when 'NSFilenamesPboardType'
-                url = YandexFotki.post_files($items)
+                url = YandexFotki.post_files($items, ENV['KEY_MODIFIERS'] == "")
         end
         $dz.finish("URL is now on clipboard")
         $dz.url(url)
