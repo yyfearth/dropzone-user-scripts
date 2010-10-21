@@ -8,7 +8,7 @@
 # KeyModifiers: Option
 # Creator: Alexander Artemenko <svetlyak.40wt@gmail.com>
 # URL: http://svetlyak.ru
-# IconURL: http://fotki.yandex.ru/favicon.ico
+# IconURL: http://img-fotki.yandex.ru/get/5601/alexander-artemenko.d/0_6afc4_6adf389_orig
 
 
 require 'net/http'
