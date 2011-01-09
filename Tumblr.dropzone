@@ -12,12 +12,11 @@
 # OptionsNIB: Login
 # LoginTitle: Tumblr Login Details
 
-# TODO: Get the users tumblr url so that the url on pasteboard works
-
 module Tumblr
   class Api
     require 'net/http'
     require 'uri'
+    require 'rexml/document'
 
     attr_accessor :form_data, :result_body
 
@@ -32,7 +31,7 @@ module Tumblr
       self.add_form_data('type', type)
 
       block.call(self)
-      self.result_body = self.run_commands.body
+      self.result_body = self.get_url(self.run_commands.body)
     end
 
     def add_form_data(key, value)
@@ -45,6 +44,14 @@ module Tumblr
       req.set_form_data(self.form_data)
       h = Net::HTTP.new(url.host, url.port)
       return h.start {|http| http.request(req) }
+    end
+
+    def get_url(id)
+      url = URI.parse("http://www.tumblr.com/api/authenticate")
+      res = Net::HTTP.post_form(url, {'email' => ENV['USERNAME'], 'password' => ENV['PASSWORD']})
+      doc = REXML::Document.new(res.body)
+      blog = doc.root.elements["tumblelog[@is-primary='yes']"]
+      return "#{blog.attributes["url"]}post/#{id}"
     end
   end
 end
