@@ -1,12 +1,12 @@
 #!/usr/bin/ruby
- 
+
 # Dropzone Destination Info
 # Name: Tumblr
-# Description: Share stuff on Tumblr. Holding down option allows you to enter a post title.
-# Handles: NSFilenamesPboardType
+# Description: Share stuff on Tumblr. Holding down Option allows you to enter a post title, holding down Control allows you to make the post private.
+# Handles: NSStringPboardType, NSFilenamesPboardType
 # Events: Clicked, Dragged
-# KeyModifiers: Option
-# Creator: Tinu Cleatus
+# KeyModifiers: Option, Control
+# Creator: MyFreeWeb & Tinu Cleatus
 # URL: http://blog.tinucleatus.com
 # IconURL: http://dl.dropbox.com/u/177542/tumblr_logo.png
 # OptionsNIB: Login
@@ -26,6 +26,9 @@ module Tumblr
 
       self.add_form_data('email', ENV['USERNAME'])
       self.add_form_data('password', ENV['PASSWORD'])
+      if ENV['KEY_MODIFIERS'].include? "Control"
+        self.add_form_data('private', 1)
+      end
       self.add_form_data('type', type)
 
       block.call(self)
@@ -49,11 +52,10 @@ end
 
 def dragged
   $dz.determinate(false)
-  file_path = $items[0]
-  filename = File.basename(file_path)
+  item = $items[0]
   title_text = ""
-  
-  if ENV['KEY_MODIFIERS'] == "Option"
+
+  if ENV['KEY_MODIFIERS'].include? "Option"
     output = `./CocoaDialog standard-inputbox --title "Enter Title" --e --informative-text "Enter the title for your post:"`
     button, title_text = output.split("\n")
 
@@ -61,20 +63,47 @@ def dragged
       return_error("Cancelled")
     end
   end
-  
-  $dz.begin("Uploading #{filename}...")
 
   begin
-    url = Tumblr::Api.new('photo') do |config|
-      config.add_form_data('caption', title_text)
-      config.add_form_data('data', File.open(file_path).read)
+    case ENV['DRAGGED_TYPE']
+    when 'NSStringPboardType'
+      $dz.begin("Posting text...")
+      url = Tumblr::Api.new("regular") do |config|
+        config.add_form_data('title', title_text)
+        config.add_form_data('body', item)
+      end
+    when 'NSFilenamesPboardType'
+      filename = File.basename(item)
+      $dz.begin("Uploading #{filename}...")
+      mime = `file --mime -b #{item}`.split("/")[0]
+      case mime
+      when "image"
+        type = "photo"
+      when "video"
+        type = "video"
+      when "application"
+        if file.path.split(".")[-1] = "mp3"
+          type = "music"
+        else
+          raise Exception
+        end
+      else
+        raise Exception
+      end
+      url = Tumblr::Api.new(type) do |config|
+        config.add_form_data('caption', title_text)
+        config.add_form_data('data', File.open(item).read)
+      end
     end
     $dz.finish("URL is now on clipboard.")
     $dz.url(url.result_body)
   rescue Exception => e
     return_error("Error uploading!")
   end
-  
+end
+
+def clicked
+  `open "http://tumblr.com"`
 end
 
 def return_error(message)
