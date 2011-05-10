@@ -34,9 +34,11 @@ def dragged
   last_output = 0
   is_receiving_xml = false
   xml_output = ""
+  ext = "jpeg" if ext == "jpg"
+  ext = "tiff" if ext == "tif"
   
   file_path = file_path.gsub('"', '\"')
-  IO.popen("/usr/bin/curl -# -A '#{FF_USERAGENT}' -F 'xml=yes' -F \"fileupload=@#{file_path}\" http://www.imageshack.us/index.php 2>&1 | tr -u \"\r\" \"\n\"") do |f|
+  IO.popen("/usr/bin/curl -# -A '#{FF_USERAGENT}' -F 'xml=yes' -F \"fileupload=@#{file_path};type=image/#{ext}\" http://www.imageshack.us/upload_api.php 2>&1 | tr -u \"\r\" \"\n\"") do |f|
     while line = f.gets do
       if line =~ /%/ and not is_receiving_xml
         line_split = line.split(" ")
@@ -63,7 +65,7 @@ def dragged
   begin
     url = ""
     doc = REXML::Document.new(xml_output)
-    doc.elements.each("links/image_link") {|e| url = e.text}
+    doc.elements.each("imginfo/links/image_link") {|e| url = e.text}
     raise "Error getting URL" if url == nil or url == ""
     url = IsGd.minify(url) if ENV['KEY_MODIFIERS'] == "Option"
     $dz.finish("URL is now on clipboard")
