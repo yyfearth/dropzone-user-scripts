@@ -10,7 +10,6 @@
 # Events: Dragged, Clicked
 # OptionsNIB: DropboxLogin
 
-require 'base64'
 require 'set'
 
 # Global variables for Dropbox settings
@@ -20,13 +19,11 @@ require 'set'
 def dropbox?
 	# Get Dropbox Public directory from the Dropbox database file, if this file is not present
 	# Dropbox is most likely not installed
-	begin
-		File.foreach(ENV['HOME'] + "/.dropbox/host.db") do |line|
-			@dropboxPubDir = Base64.decode64(line) + "/Public/"
-		end
+	if File.exist?(db_path = ENV['HOME'] + '/.dropbox/config.db')
+    @dropboxPubDir = `sqlite3 "#{db_path}" 'SELECT value FROM config WHERE key="dropbox_path"'`.chomp + '/Public'
 		return true
-	rescue Errno::ENOENT
-	# Dropbox is not installed on this machine
+  else 
+	  # Dropbox is not installed on this machine
 		return false
 	end
 end
