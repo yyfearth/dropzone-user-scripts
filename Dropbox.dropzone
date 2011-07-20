@@ -11,6 +11,7 @@
 # OptionsNIB: DropboxLogin
 
 require 'set'
+require 'base64'
 
 # Global variables for Dropbox settings
 @dropboxPubDir = ""
@@ -19,13 +20,12 @@ require 'set'
 def dropbox?
 	# Get Dropbox Public directory from the Dropbox database file, if this file is not present
 	# Dropbox is most likely not installed
-	if File.exist?(db_path = ENV['HOME'] + '/.dropbox/config.db')
-    @dropboxPubDir = `sqlite3 "#{db_path}" 'SELECT value FROM config WHERE key="dropbox_path"'`.chomp + '/Public'
-		return true
-  else 
-	  # Dropbox is not installed on this machine
-		return false
-	end
+	if File.exist?(conf_path = ENV['HOME'] + '/.dropbox/host.db')
+	  @dropboxPubDir = Base64.decode64(File.open(conf_path).read).match(/\/.+$/)[0] + '/Public'
+	  return true
+  else
+    return false
+  end
 end
 
 
