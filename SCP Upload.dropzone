@@ -116,7 +116,7 @@ class SCP
 
   def self.upload(localpaths, remotedir, host, port, user, pass, &block)
     alert_title = "SCP Upload Error"
-    
+    error_title = "Connection Failed"
     begin
       Net::SSH.start(host, user, {:password => pass, :port => port}) do |ssh|
   	    files = []
