@@ -19,6 +19,11 @@ $host_info = {:server    => ENV['SERVER'],
               :username  => ENV['USERNAME'],
               :password  => ENV['PASSWORD']}
 
+# Fix case in which port is incorrectly signed and opposed to unsigned (thanks @leafmuncher!)
+if $host_info[:port].to_i < 0
+  $host_info[:port] = 65536 + $host_info[:port].to_i
+end
+
 def dragged
   delete_zip = false
   
