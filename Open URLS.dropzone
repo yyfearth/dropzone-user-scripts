@@ -9,8 +9,6 @@
 # IconURL: http://brettterpstra.com/destinations/icons/openurls.png
 # Events: Clicked, Dragged
 
-$browser = "Safari.app"
-
 def clicked(was_dragged = false)
   $dz.begin("Parsing text for links")
   $dz.determinate(true)
@@ -34,7 +32,7 @@ def clicked(was_dragged = false)
     links.each {|url|
       unless norepeat.include?(url[0])
         norepeat.push url[0]
-        %x{open -a "#{$browser}" "#{url[0]}"}
+        %x{open "#{url[0]}"}
       end
       percent += inc
       $dz.percent(percent)
