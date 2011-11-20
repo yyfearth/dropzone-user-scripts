@@ -1,7 +1,7 @@
 #!/usr/bin/ruby
 
 # Dropzone Destination Info
-# Name: Open links
+# Name: Open URLs
 # Description: Parses dropped files, dragged text or the clipboard (on click) for http(s) links, opens them in Safari (or defined browser)
 # Handles: NSFilenamesPboardType
 # Creator: Brett Terpstra
