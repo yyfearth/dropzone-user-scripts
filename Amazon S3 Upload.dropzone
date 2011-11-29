@@ -1,12 +1,11 @@
 # Dropzone Destination Info
-# Name: AWS
-# Description: Make droplets for your aws/s3 for specific bucket
+# Name: Amazon S3 Upload
+# Description: Allows you to upload to an Amazon S3 bucket. Username is Access Key ID, Password is Secret Key and Remote Path is bucket name.
 # Handles: NSFilenamesPboardType
-# Events: dragged
-# KeyModifiers: Option
+# Events: Dragged
 # Creator: Edgar J. Suárez
-# URL: http://e.dgar.org
-# IconURL: http://aws3-edgarjs-images.s3.amazonaws.com/awss3.png
+# URL: http://about.me/edgarjs
+# IconURL: http://aptonic.com/destinations/icons/aws.png
 # OptionsNIB: ExtendedLogin
 # LoginTitle: Username is for Access Key ID, Password is for Secret Key, and Remote Path is for bucket name
 
@@ -869,7 +868,7 @@ module DropZone
     
     attr_reader :bucket, :connection
     
-    def initialize(access_key, secret_key, bucket_name, public_read = false)
+    def initialize(access_key, secret_key, bucket_name, public_read = true)
       @access_key, @secret_key, @bucket = access_key, secret_key, bucket_name
       @public_read = public_read
       connect!
@@ -892,10 +891,10 @@ module DropZone
       basename = File.basename(file_path)
       @connection.put(@bucket, basename, 
         S3Object.new(File.open(file_path).read, {
-          "uploaded-from" => "DropZone AWS"
+          "uploaded-from" => "Dropzone AWS"
         }), {
         'Content-Type' => content_type
-      }.merge(public_read? ? {'x-amz-acl' => 'public-read'} : {}))
+      }.merge(true ? {'x-amz-acl' => 'public-read'} : {}))
       
       if public_read?
         generator = QueryStringAuthGenerator.new(@access_key, @secret_key)
@@ -922,18 +921,27 @@ def dragged
     else
       ENV['REMOTE_PATH'].downcase
     end
-  aws = DropZone::AWS.new(ENV['USERNAME'], ENV['PASSWORD'], bucket, ENV['KEY_MODIFIERS'] == "Option")
+  aws = DropZone::AWS.new(ENV['USERNAME'], ENV['PASSWORD'], bucket, true)
   
   begin
     $dz.begin("Uploading file...")
     
     aws.create_bucket unless aws.bucket_exists?
-    url = aws.upload(file_path)
+    aws.upload(file_path)
+
+    filename = file_path.split(File::SEPARATOR)[-1].strip    
+    finish_text = "Upload Complete"
     
-    $dz.finish("File uploaded!")
+    if ENV['ROOT_URL'] != nil
+      slash = (ENV['ROOT_URL'][-1,1] == "/" ? "" : "/")
+      url = ENV['ROOT_URL'] + slash + filename
+      finish_text = "URL is now on clipboard"
+    else
+      url = file_path
+    end
+
+    $dz.finish(finish_text)
     $dz.url(url)
-    system("open #{url}") if aws.public_read?
-    
   rescue Exception => e
     $dz.finish(e)
     $dz.url(false)
