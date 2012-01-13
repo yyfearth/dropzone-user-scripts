@@ -6,8 +6,8 @@
 # Handles: NSFilenamesPboardType
 # Events: Dragged, TestConnection
 # KeyModifiers: Option
-# Creator: Holistic Software Buggers
-# URL: http://antiframeworks.com
+# Creator: Aptonic Software
+# URL: http://aptonic.com
 # IconURL: http://aptonic.com/destinations/icons/scp.png
 # OptionsNIB: ExtendedLogin
 # DefaultPort: 22
