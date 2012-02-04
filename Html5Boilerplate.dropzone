@@ -1,0 +1,39 @@
+#!/usr/bin/ruby
+ 
+# Dropzone Destination Info
+# Name: HTML5 Boilerplate
+# Description: Clone latest github repository of HTML5 Boilerplate into folder dragged onto destination.
+# Events: Dragged
+# Handles: NSFilenamesPboardType
+# Creator: Marcell Jusztin
+# URL: http://www.marcelljusztin.com
+# IconURL: http://marcelljusztin.com/images/boilerplate_icon.png
+
+def dragged
+  folder_path = $items[0]
+  if File::ftype(folder_path).eql? 'directory'
+    output = `./CocoaDialog standard-inputbox --title "Clone repo into folder" --e --informative-text "Enter name for new folder (leave it empty to clone into dragged folder):"`
+    new_folder_name = output.split("\n")[1]
+    Dir.chdir(folder_path)
+    begin
+      $dz.determinate(false)
+      $dz.begin("Cloning HTML5 Boilerplate")
+      if new_folder_name.nil?  
+        `git clone git://github.com/h5bp/html5-boilerplate.git #{folder_path}`
+      else
+        Dir.mkdir(new_folder_name) unless File.exists?(new_folder_name)
+        `git clone git://github.com/h5bp/html5-boilerplate.git #{new_folder_name}`
+      end
+      $dz.finish("Done.")
+      $dz.url(false)
+    rescue Exception => e
+      $dz.error("Oops!", e)
+      $dz.finish("Quitting.")
+      $dz.url(false)
+    end
+  else
+    $dz.alert("Wrong type", "Dragged item is not a folder")
+    $dz.finish("Quitting.")
+    $dz.url(false)
+  end
+end
