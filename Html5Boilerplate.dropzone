@@ -17,8 +17,14 @@ def dragged
     Dir.chdir(folder_path)
   	$dz.determinate(true)
   	$dz.begin("Cloning HTML5 Boilerplate")
-  	git_clone(folder_path, new_folder_name) # Do the magic
-    $dz.finish("Done.")
+  	begin
+  	  git_clone(folder_path, new_folder_name) # Do the magic
+  	rescue Exception => e
+  	  $dz.error("Error", e)
+  	  $dz.finish("Quitting.")
+      $dz.url(false)
+	  end
+    $dz.finish("Quitting.")
     $dz.url(false)
   else
     $dz.alert("Wrong type", "Dragged item is not a folder")
@@ -36,8 +42,13 @@ def git_clone(dragged_folder, folder)
     child = fork{ STDERR.reopen w; w.close; `git clone git://github.com/h5bp/html5-boilerplate.git #{folder} --progress &` } # Fork github thread and open STDERR
   end
   w.close
-  while(( l = r.read(50) )) # Read STDERR
-    percent = /\d+%(?!.*\d+%)/.match(l.inspect) # Match the last occurance of the percentage
-    $dz.percent(percent.to_s.gsub("\%","")) unless percent.nil? # Get rid of "%" sign and pass value to progressbar
+  while(( l = r.read(100) )) # Read STDERR
+    error = /fatal/.match(l.inspect) # Look for error message
+    if error.nil?
+      percent = /\d+%(?!.*\d+%)/.match(l.inspect) # Match the last occurance of the percentage
+      $dz.percent(percent.to_s.gsub("\%","")) unless percent.nil? # Get rid of "%" sign and pass value to progressbar
+    else
+      $dz.error("Git Error", l.inspect) # Output error message
+    end
   end
 end
