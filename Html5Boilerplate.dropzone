@@ -12,7 +12,7 @@
 def dragged
   folder_path = $items[0]
   if File::ftype(folder_path).eql? 'directory'
-  	git_clone(folder_path, false)
+    git_clone(folder_path, false)
     $dz.finish("Clone Completed")
   else
     $dz.finish("Must be Folder")
