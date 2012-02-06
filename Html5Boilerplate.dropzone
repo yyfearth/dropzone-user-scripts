@@ -18,7 +18,7 @@ def dragged
     $dz.finish("Must be Folder")
   end
   
-	$dz.url(false)
+  $dz.url(false)
 end
 
 def clicked
@@ -36,7 +36,7 @@ def clicked
 end
 
 def git_clone(folder, create_folder)
-	$dz.determinate(false)
+  $dz.determinate(false)
   $dz.begin("Cloning HTML5 Boilerplate...")
   error_title = "HTML5 Boilerplate Clone Error"
   
