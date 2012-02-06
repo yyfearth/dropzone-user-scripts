@@ -15,25 +15,29 @@ def dragged
     output = `./CocoaDialog standard-inputbox --title "Clone repo into folder" --e --informative-text "Enter name for new folder (leave it empty to clone into dragged folder):"`
     new_folder_name = output.split("\n")[1]
     Dir.chdir(folder_path)
-    begin
-      $dz.determinate(false)
-      $dz.begin("Cloning HTML5 Boilerplate")
-      if new_folder_name.nil?  
-        `git clone git://github.com/h5bp/html5-boilerplate.git #{folder_path}`
-      else
-        Dir.mkdir(new_folder_name) unless File.exists?(new_folder_name)
-        `git clone git://github.com/h5bp/html5-boilerplate.git #{new_folder_name}`
-      end
-      $dz.finish("Done.")
-      $dz.url(false)
-    rescue Exception => e
-      $dz.error("Oops!", e)
-      $dz.finish("Quitting.")
-      $dz.url(false)
-    end
+  	$dz.determinate(true)
+  	$dz.begin("Cloning HTML5 Boilerplate")
+  	git_clone(folder_path, new_folder_name) # Do the magic
+    $dz.finish("Done.")
+    $dz.url(false)
   else
     $dz.alert("Wrong type", "Dragged item is not a folder")
     $dz.finish("Quitting.")
-    $dz.url(false)
+  	$dz.url(false)
+  end
+end
+
+def git_clone(dragged_folder, folder)
+  r, w = IO.pipe # Assign I/O
+  if folder.nil?  # Cloning to subfolder?
+    child = fork{ STDERR.reopen w; w.close; `git clone git://github.com/h5bp/html5-boilerplate.git #{dragged_folder} --progress &` } # Fork github thread and open STDERR
+  else
+    Dir.mkdir(folder) unless File.exists?(folder)
+    child = fork{ STDERR.reopen w; w.close; `git clone git://github.com/h5bp/html5-boilerplate.git #{folder} --progress &` } # Fork github thread and open STDERR
+  end
+  w.close
+  while(( l = r.read(50) )) # Read STDERR
+    percent = /\d+%(?!.*\d+%)/.match(l.inspect) # Match the last occurance of the percentage
+    $dz.percent(percent.to_s.gsub("\%","")) unless percent.nil? # Get rid of "%" sign and pass value to progressbar
   end
 end
