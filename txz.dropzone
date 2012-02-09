@@ -7,7 +7,7 @@
 # Events: Dragged
 # Creator: Wilson
 # URL: http://yyfearth.com
-# IconURL: http://aptonic.com/destinations/icons/zip.png
+# IconURL: https://github.com/yyfearth/dropzone-user-scripts/raw/txz/icons/folder_tar.png
 
 def dragged
   
