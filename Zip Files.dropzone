@@ -28,9 +28,9 @@ def dragged
   desktop = ENV['HOME'] + '/Desktop'
 
   zipfile = ZipFiles.zip($items, filename + ".zip")
-  zipfile = zipfile[1,zipfile.length - 2]
+  zipfile = zipfile[1, zipfile.length - 2]
   system("zip -d \"#{zipfile}\" '__MACOSX*' '*.DS_Store' >& /dev/null")
-  Rsync.do_copy(zipfile.gsub(/ /, '\ '), desktop, true)
+  Rsync.do_copy(zipfile, desktop, true)
 
   $dz.finish("ZIP created")
   $dz.url(false)
