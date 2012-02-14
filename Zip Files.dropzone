@@ -29,7 +29,7 @@ def dragged
 
   zipfile = ZipFiles.zip($items, filename + ".zip")
   zipfile = zipfile[1,zipfile.length - 2]
-  system("zip -d #{zipfile} '__MACOSX*' '*.DS_Store' >& /dev/null")
+  system("zip -d \"#{zipfile}\" '__MACOSX*' '*.DS_Store' >& /dev/null")
   Rsync.do_copy(zipfile.gsub(/ /, '\ '), desktop, true)
 
   $dz.finish("ZIP created")
