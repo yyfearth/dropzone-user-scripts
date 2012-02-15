@@ -33,9 +33,10 @@ def dragged
   wd = Dir.getwd
 
   for dir in dirs
-    path = File.dirname(dir).sub(' ', '\ ')
-    name = File.basename(dir).sub(' ', '\ ')
-    `cd #{path} && tar cf - --exclude='__MACOSX*' --exclude='*.DS_Store' #{name} | xz -e9z - > #{name}.txz`
+    path = File.dirname(dir)#.sub(' ', '\ ')
+    name = File.basename(dir)#.sub(' ', '\ ')
+    #$dz.alert name, path
+    `cd "#{path}" && tar cf - --exclude='__MACOSX*' --exclude='*.DS_Store' "#{name}" | xz -e9z - > "#{name}.txz"`
     $dz.percent percent += 95.0 / count
     #"#{dir}.txz"
   end
