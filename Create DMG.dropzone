@@ -33,18 +33,10 @@ def dragged
 		fileName = $items[0]
 	end
 
-	# output name (remove the fileName and any other chars that could be potentially dangerous)
-	fileName = File.basename(fileName, '.*').gsub(/[^a-zA-Z0-9\.\s-]/, '')
-
-	# set the output dmg and volumne name
-	dmgName = fileName + '.dmg'
-	volumeName = fileName
-	
 	# create the tmp directories
 	tmpSrcDir = "#{$tmpDir}/src";
 	
 	# set the output files
-	tmpDmg = "#{$tmpDir}/#{dmgName}"
 	destination = ENV['HOME'] + '/Desktop'
 
 	# make sure the destination directory is there and writable
@@ -85,14 +77,52 @@ def dragged
 		return
 	end
 
-	# create the dmg file, copy to the desktop and do some cleaning up
+	# check for encrytion and create the dmg file
+	encryption = ENV["KEY_MODIFIERS"] != '' ? true : false
+	tmpDmg = create_dmg(tmpSrcDir, fileName, encryption)
+
+	# move the dmg to the desktop
+	if tmpDmg != nil
+		$dz.begin("Moving DMG to destination...")
+		$dz.determinate(true)
+		Rsync.do_copy(tmpDmg, destination, false, true)
+	end
+	
+	# do come cleanup
+	cleanup
+
+	$dz.finish('Created ...');
+	$dz.url(false)
+
+end
+
+def clicked
+	# open the Disk Utility app in the Utilities folder
+	`osascript -e 'tell application "Disk Utility" to activate'`
+end
+
+def create_dmg(srcDirectory = nil, outputName = nil, encryption = false)
+	
+	if srcDirectory == nil || outputName == nil
+		cleanup
+		$dz.error("Missing options", "Missing some options required to create the DMG")
+		return nil
+	end
+
+	# output name (remove the fileName and any other chars that could be potentially dangerous)
+	volumeName = File.basename(outputName, '.*').gsub(/[^a-zA-Z0-9\.\s-]/, '')
+
+	# set the output dmg details
+	dmgName = volumeName + '.dmg'
+	dmgPath = "#{$tmpDir}/#{dmgName}"
+
 	begin
 		
 		# create an encrypted DMG file if a modifier key is held down
-		if ENV["KEY_MODIFIERS"] != "Command"
+		if encryption == false
 			$dz.determinate(false)
-			$dz.begin("Creating DMG file...")
-			system("hdiutil create \"#{tmpDmg}\" -fs HFS+ -volname \"#{volumeName}\" -srcfolder \"#{tmpSrcDir}\" -ov >& /dev/null")
+			$dz.begin("Creating DMG file...")		
+			system("hdiutil create \"#{dmgPath}\" -volname \"#{volumeName}\" -srcfolder \"#{srcDirectory}\" -ov >& /dev/null")
 		else
 			# get the password
 			output = `./CocoaDialog secure-standard-inputbox ‑‑float --title "Enter a new password to secure #{dmgName}" --e --informative-text "If you forget this password you will not be able to access the files stored on this image. Please make sure your password works before moving any files to the trash.\n\nPlease enter your password:" --button1 "Ok" --button2 "Cancel"`
@@ -111,29 +141,15 @@ def dragged
 
 			# man hdiutil
 			# create the encrypted image (-stdinpass reads a null-terminated passphrase from standard input so need to create a null terminated string)
-			system("echo \"#{password}\\0\" | hdiutil create -encryption -stdinpass -fs HFS+ -volname \"#{volumeName}\" -srcfolder \"#{tmpSrcDir}\" \"#{tmpDmg}\" -ov >& /dev/null")
+			system("echo \"#{password}\\0\" | hdiutil create -encryption -stdinpass -volname \"#{volumeName}\" -srcfolder \"#{srcDirectory}\" \"#{dmgPath}\" -ov >& /dev/null")
 		end
-
-		# move the dmg to the desktop
-		$dz.begin("Moving DMG to destination...")
-		$dz.determinate(true)
-		Rsync.do_copy(tmpDmg, destination, false, true)
-
-		# do come cleanup
-		cleanup
-
-		$dz.finish('Created ...');
-		$dz.url(false)
 	rescue => e
 		cleanup
 		$dz.error("Error Creating DMG File", e.message)
-		return
+		return nil
 	end
-end
-
-def clicked
-	# open the Disk Utility app in the Utilities folder
-	`osascript -e 'tell application "Disk Utility" to activate'`
+	
+	return dmgPath 
 end
 
 def cleanup
