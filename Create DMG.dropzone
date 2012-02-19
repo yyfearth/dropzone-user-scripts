@@ -95,7 +95,7 @@ def dragged
 			system("hdiutil create \"#{tmpDmg}\" -volname \"#{volumeName}\" -srcfolder \"#{tmpSrcDir}\" -ov >& /dev/null")
 		else
 			# get the password
-			output = `./CocoaDialog secure-standard-inputbox ‑‑float --title "Enter a new password to secure #{dmgName}" --e --informative-text "If you forget this password you will not be able to access the files stored on this image.\n\nEnter the password:" --button1 "Ok" --button2 "Cancel"`
+			output = `./CocoaDialog secure-standard-inputbox ‑‑float --title "Enter a new password to secure #{dmgName}" --e --informative-text "If you forget this password you will not be able to access the files stored on this image. Please make sure your password works before moving any files to the trash.\n\nPlease enter your password:" --button1 "Ok" --button2 "Cancel"`
 			button, password = output.split("\n")
 			
 			# stop on cancel
