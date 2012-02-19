@@ -3,11 +3,11 @@
 # Dropzone Destination Info
 # Name: Create DMG file
 # Description: Creates a DMG file from the dropped files
-# Handles: NSfileNamesPboardType
+# Handles: NSFilenamesPboardType
 # Events: Clicked, Dragged
 # Creator: Megan Cooke
 # URL: http://www.insanekitty.co.uk
-# IconURL: http://dl.dropbox.com/u/35021980/dropzone-create-dmg.png
+# IconURL: http://aptonic.com/destinations/icons/create-dmg.png
 
 def dragged
 	
