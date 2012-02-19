@@ -2,10 +2,10 @@
 
 # Dropzone Destination Info
 # Name: Create DMG file
-# Description: Creates a DMG file from the dropped files, pressing the cmd key creates an encrypted DMG.
+# Description: Creates a DMG file from the dropped files, holding down the option key creates an encrypted DMG.
 # Handles: NSFilenamesPboardType
 # Events: Clicked, Dragged
-# KeyModifiers: Command
+# KeyModifiers: Option
 # Creator: Megan Cooke
 # URL: http://www.insanekitty.co.uk
 # IconURL: http://dl.dropbox.com/u/35021980/dropzone-create-dmg.png
@@ -13,6 +13,12 @@
 # global vars
 $tmpDir = '/tmp/dztmp-' + Time.now.usec.to_s
 
+# Runs when we drag a file(s) onto the destination icon 
+#
+# * *Args*    :
+# * *Returns* :
+#   -
+#
 def dragged
 	
 	# set the initial text for the input box
@@ -96,11 +102,26 @@ def dragged
 
 end
 
+# Runs when the destination icon is clicked and opens Disk Utility
+#
+# * *Args*    :
+# * *Returns* :
+#   -
+#
 def clicked
 	# open the Disk Utility app in the Utilities folder
 	`osascript -e 'tell application "Disk Utility" to activate'`
 end
 
+# This creates a dmg file in the passed source directory
+#
+# * *Args*    :
+#   - +srcDirectory+ -> the path the directory that will populate the DMG
+#   - +outputName+ -> the name to use as the base for the final DMG
+#   - +encryption+ -> whether to create an encrypted file
+# * *Returns* :
+#   - the path to the created dmg file as a string or nil if any errors are caught
+#
 def create_dmg(srcDirectory = nil, outputName = nil, encryption = false)
 	
 	if srcDirectory == nil || outputName == nil
@@ -152,6 +173,12 @@ def create_dmg(srcDirectory = nil, outputName = nil, encryption = false)
 	return dmgPath 
 end
 
+# Removes any tmp files
+#
+# * *Args*    :
+# * *Returns* :
+#   -
+#
 def cleanup
 	# remove the tmp directory
 	if File.exists?($tmpDir)
