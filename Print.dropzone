@@ -65,8 +65,6 @@ def get_printer
     $dz.finish("No Printers Available")
     $dz.url(false)
     Process.exit!
-  elsif not output =~ /device for/
-    $dz.error("Unexpected lpstat Output", "The lpstat command returned " + output.inspect)
   end
     
   lpstat_output = output.split("\n")
