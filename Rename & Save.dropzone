@@ -11,7 +11,7 @@ def dragged
   output = `./CocoaDialog standard-inputbox --title "Rename File" --e --informative-text "Enter new name for this file (minus extension):"`
   filename = output.split("\n")[1]
 
-  if filename == ""
+  if filename == nil
     $dz.finish("Empty Filename")
     $dz.url(false)
     return
