@@ -1,26 +1,24 @@
 #!/usr/bin/ruby
  
 # Dropzone Destination Info
-# Name: TwitPic
-# Description: Share photos via the TwitPic service. Holding down option allows you to enter a tweet to send now.
+# Name: ImageShack 2
+# Description: Uploads an image to ImageShack. Holding down option causes the resulting URL to be minified using the Is.Gd service.
 # Handles: NSFilenamesPboardType
 # Events: Clicked, Dragged
 # KeyModifiers: Option
 # Creator: Aptonic Software
 # URL: http://aptonic.com
-# IconURL: http://aptonic.com/destinations/icons/twitpic.png
-# OptionsNIB: Login
-# LoginTitle: Twitter Login Details
+# IconURL: http://aptonic.com/destinations/icons/imageshack.png
  
 require "rexml/document"
+
+FF_USERAGENT = "Mozilla/5.0 (Windows; U; Windows NT 6.0; en-US; rv:1.9.0.6) Gecko/2009011913 Firefox/3.0.6"
 
 def dragged
   $dz.determinate(true)
   
   file_path = $items[0]
   filename = File.basename(file_path)
-  should_tweet = false
-  tweet_text = ""
   
   allowed_exts = ["jpg", "jpeg", "gif", "tif", "tiff", "png", "bmp"]
   ext = File.extname(file_path).downcase[1..-1]
@@ -31,30 +29,16 @@ def dragged
     Process.exit
   end
   
-  if ENV['KEY_MODIFIERS'] == "Option"
-    should_tweet = true
-    output = `./CocoaDialog standard-inputbox --title "Enter Tweet" --e --informative-text "Enter the text for your tweet:"`
-    button, tweet_text = output.split("\n")
-
-    if button == "2" or tweet_text == nil
-      $dz.finish("Cancelled")
-      $dz.url(false)
-      return
-    end
-  end
-  
   $dz.begin("Uploading #{filename}...")
-
+  
   last_output = 0
   is_receiving_xml = false
   xml_output = ""
- 
-  api_action = (should_tweet ? "uploadAndPost" : "upload")
-  tweet_text.gsub!('"', '\"')
-  tweet_text.gsub!('$', '\$')
-  file_path = file_path.gsub('"', '\"')
+  ext = "jpeg" if ext == "jpg"
+  ext = "tiff" if ext == "tif"
   
-  IO.popen("/usr/bin/curl -# -F 'username=#{ENV['USERNAME']}' -F 'password=#{ENV['PASSWORD']}' -F \"media=@#{file_path}\" -F \"message=#{tweet_text}\" http://twitpic.com/api/#{api_action} 2>&1 | tr -u \"\r\" \"\n\"") do |f|
+  file_path = file_path.gsub('"', '\"')
+  IO.popen("/usr/bin/curl -# -A '#{FF_USERAGENT}' -F 'key=OVGAZM7Ld2a61aeac28a8fd342878be61b96e564' -F 'xml=yes' -F \"fileupload=@#{file_path};type=image/#{ext}\" http://www.imageshack.us/upload_api.php 2>&1 | tr -u \"\r\" \"\n\"") do |f|
     while line = f.gets do
       if line =~ /%/ and not is_receiving_xml
         line_split = line.split(" ")
@@ -81,33 +65,28 @@ def dragged
   begin
     url = ""
     doc = REXML::Document.new(xml_output)
-    root = doc.root
-    status = (should_tweet ? root.attributes["status"] : root.attributes["stat"])
-    
-    if status == "ok"
-      doc.elements.each("rsp/mediaurl") {|e| url = e.text}      
-    else
-      $dz.error("TwitPic Upload Error", root.elements[1].attributes["msg"])
-    end
-
+    doc.elements.each("imginfo/links/image_link") {|e| url = e.text}
+    raise "Error getting URL" if url == nil or url == ""
+    url = IsGd.minify(url) if ENV['KEY_MODIFIERS'] == "Option"
     $dz.finish("URL is now on clipboard")
     $dz.url(url)
   rescue
     $dz.finish("Upload Failed")
     $dz.url(false)
   end
+  
 end
 
 def handle_errors(line)
   if line[0..4] == "curl:"
     if line[6..-1] =~ /Couldn't resolve/
-      $dz.error("TwitPic Upload Error", "Please check your network connection.")
+      $dz.error("ImageShack Upload Error", "Please check your network connection.")
     else
-      $dz.error("TwitPic Upload Error", line[6..-1])
+      $dz.error("ImageShack Upload Error", line[6..-1])
     end
   end
 end
 
 def clicked
-  system("open http://twitpic.com/")
+  system("open http://imageshack.us/")
 end

@@ -12,16 +12,16 @@
 def clicked
 
 path=`osascript <<END
-  tell application "Finder"
-  	set theSelection to the selection
-  	try
-  		set theSelection to theSelection as string
-  		set finder_path to POSIX path of theSelection
-  	on error
-  		set finder_path to null
-  	end try
-  end tell
-  if finder_path is not null then return finder_path
+tell application "Finder"
+	try
+		set theSelection to (target of window 1 as alias)
+		set theSelection to theSelection as string
+		set finder_path to POSIX path of theSelection
+	on error
+		set finder_path to null
+	end try
+end tell
+if finder_path is not null then return finder_path
 END`
 
   if (path == nil or path == "")
