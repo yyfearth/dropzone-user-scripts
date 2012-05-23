@@ -2,7 +2,7 @@
 # encoding: utf-8
 
 # myPhoneDesktop for Dropzone extension
-# v1.0, 02/01/2012
+# v1.1, 05/23/2012
 # Author: jProductivity
 # Copyright © 2012 jProductivity, LLC
 # http://www.myphonedesktop.com/
@@ -55,15 +55,12 @@ def process_query(data, was_clicked)
 
   is_file = File.exist?(data) && ! File.directory?(data)
 
-  allowed_image_files = ["JPEG image", "Portable Network Graphics image", "Graphics Interchange Format (GIF)"]
-  allowed_text_files = ["Plain text document", "Plain Text", "Markdown document", "vCard", "comma-separated values", "Log file", "HTML document", "Cascading style sheet", "JavaScript source", "Ruby source", "SQL source"]
+  allowed_image_files = [".jpeg", ".jpg", ".png", ".gif"]
+  allowed_text_files = [".text", ".txt", ".js", ".log", ".css", ".vcf", ".htm", ".html", ".md", ".markdown", ".rb", ".sql", ".java", ".csv", ".htm", ".html"]
 
   if is_file
-    file_kind = "(null)"
-    while file_kind == "(null)"
-      file_kind = `mdls -raw -name kMDItemKind "#{data}" 2>&1`
-      sleep(0.1)
-    end
+    file_name = File.basename("#{data}")
+    file_kind = File.extname("#{data}")
 
     if allowed_image_files.include?(file_kind) || allowed_text_files.include?(file_kind)
       t = Thread.new do
@@ -71,7 +68,7 @@ def process_query(data, was_clicked)
       end
       t.join
     else
-      $dz.error("Unsupported File Type", "myPhoneDesktop unable to process file\n\nSupported file types include text files (txt, vCard, markdown, etc.) and images (gif, jpeg and png)")
+      $dz.error("Unsupported File Type", "myPhoneDesktop unable to process file:\n\n#{file_name}\n\nSupported file types include text files (txt, vCard, markdown, etc.) and images (gif, jpeg and png)")
       Process.exit
     end
 
