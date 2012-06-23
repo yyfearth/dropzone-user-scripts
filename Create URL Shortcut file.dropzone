@@ -11,17 +11,16 @@
 
 def dragged
   destination = "#{ENV['EXTRA_PATH']}"
-  
+
   $dz.determinate(false)
   $dz.begin("Creating URL Shortcut File...")
-  
+
   # variables
-  title = ''
   url   = $items[0]
-  title = url.gsub('http://', '').gsub('https://', '').gsub("\/", '_')
+  title = $items[0].gsub(/https?:\/\//, '').gsub("\/", '_')
   
   # creating the webloc file
-  File.open("#{destination}/#{title}.webloc", "a") { |f|
+  File.open("#{destination}/#{title}.webloc", "w") { |f|
     f << %Q{<?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
         <plist version="1.0">
@@ -31,14 +30,14 @@ def dragged
         </dict>
         </plist>}
     }
-  
+
   # hiding the webloc extension
-  system "/usr/bin/SetFile -a E \"#{destination}/#{title}.webloc\""
-  
+  %x{/usr/bin/SetFile -a E \"#{destination}/#{title}.webloc\"}
+
   $dz.finish("URL Shortcut File created")
   $dz.url(false)
 end
 
 def clicked
-  system("open \"#{ENV['EXTRA_PATH']}\"")
+  %x{open "#{ENV['EXTRA_PATH']}"}
 end
