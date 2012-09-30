@@ -53,7 +53,7 @@ def bunch_links(text)
   links = text.scan(/((?:http|https):\/\/[\w\-_]+(?:\.[\w\-_]+)+(?:[\w\-\.,@?^=%&amp;:\/~\+#]*[\w\-\@^=%&amp;\/~\+#])?)/m)
   unless links.empty?
     linkbunch = CGI.escape(links.join("\n"))
-    url = "http://linkbun.ch/linkbunch.php?links=#{linkbunch}&bunch=Bunch&mode=api"
+    url = "http://www.linkbun.ch/linkbunch.php?links=#{linkbunch}&bunch=Bunch&mode=api"
     res = Net::HTTP.get_response(URI.parse(url))
     if res.code.to_i == 200
       $dz.finish("#{links.length} links bunched")

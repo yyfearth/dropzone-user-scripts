@@ -139,6 +139,6 @@ end
 def cleanup
 	# remove the tmp directory
 	if File.exists?($tmpDir)
-		system("/bin/rm -rf #{$tmpDir}")
+		system("/bin/rm -rf #{$tmpDir} >& /dev/null")
 	end
 end
